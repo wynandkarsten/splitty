@@ -6,7 +6,7 @@ Plan, market scan and MVP spec live in the Obsidian vault: `Bill Split App` (`02
 
 ## Status
 
-Scaffold only (2026-11-10). No Supabase project exists yet, no app screens are built, the template's demo screens are still in `src/app`.
+Scaffold plus live database (2026-11-10). No app screens are built, the template's demo screens are still in `src/app`.
 
 ## Run
 
@@ -15,11 +15,9 @@ npm install
 npx expo start        # then press w for web, or scan the QR in Expo Go
 ```
 
-## Backend setup (not done yet)
+## Backend
 
-1. Create a Supabase project (needs Wynand's account).
-2. Copy `.env.example` to `.env.local` and fill in the project URL and anon key.
-3. Apply `supabase/migrations/20261110000000_core_schema.sql` (SQL editor, or the Supabase CLI).
+Supabase project `splitty` (ref `kgxudhaqszsgpwyshvzz`, region eu-west-1), linked with the Supabase CLI. The core migration is applied. On a new machine: `npx supabase login`, `npx supabase link --project-ref kgxudhaqszsgpwyshvzz`, copy `.env.example` to `.env.local` and fill in the URL and publishable key (Dashboard > Project Settings > API, or `npx supabase projects api-keys`). New migrations: `npx supabase db push`.
 
 ## Schema
 
