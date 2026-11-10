@@ -7,7 +7,7 @@ create table public.events (
   id          uuid primary key default gen_random_uuid(),
   name        text not null check (length(trim(name)) > 0),
   currency    char(3) not null default 'ZAR',
-  join_code   text not null unique default encode(gen_random_bytes(6), 'hex'),
+  join_code   text not null unique default substr(replace(gen_random_uuid()::text, '-', ''), 1, 12),
   created_by  uuid references auth.users (id) on delete set null,
   created_at  timestamptz not null default now()
 );
