@@ -1,98 +1,41 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { Pressable, View } from 'react-native';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { Btn, Card, Row, Screen, Txt } from '@/components/ui';
+import { useTheme } from '@/constants/theme';
+import { listGroups, type Group } from '@/lib/db';
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
+type G = Group & { member_count: number; expense_count: number };
+
+export default function Home() {
+  const r = useRouter();
+  const t = useTheme();
+  const [groups, setGroups] = useState<G[]>([]);
+  const [loaded, setLoaded] = useState(false);
+  useFocusEffect(useCallback(() => {
+    listGroups().then((g) => { setGroups(g); setLoaded(true); });
+  }, []));
   return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
+    <Screen>
+      <Row style={{ justifyContent: 'space-between' }}>
+        <Txt size={22} bold>Your groups</Txt>
+        <Pressable onPress={() => r.push('/settings')}><Txt color={t.primary} bold>Settings</Txt></Pressable>
+      </Row>
+      {loaded && groups.length === 0 && (
+        <Card>
+          <Txt bold>No groups yet</Txt>
+          <Txt sub>Make a group for a trip, a flat or a dinner, add the people, then log what everyone paid. Everything stays on your phone.</Txt>
+        </Card>
+      )}
+      {groups.map((g) => (
+        <Card key={g.id} onPress={() => r.push(`/group/${g.id}`)}>
+          <Txt size={18} bold>{g.name}</Txt>
+          <View style={{ height: 4 }} />
+          <Txt sub>{g.member_count} people · {g.expense_count} expenses · {g.currency}</Txt>
+        </Card>
+      ))}
+      <Btn label="+ New group" onPress={() => r.push('/new-group')} />
+    </Screen>
   );
 }
-
-export default function HomeScreen() {
-  return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
-
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
-
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
-  },
-  title: {
-    textAlign: 'center',
-  },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
-  },
-});

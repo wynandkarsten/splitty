@@ -45,3 +45,9 @@ example
 
 # supabase CLI local state
 supabase/.temp/
+
+# generated native projects and signing
+/android
+/ios
+*.keystore
+keystore.properties
