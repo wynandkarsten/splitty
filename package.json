@@ -53,7 +53,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "test": "jest"
+    "test": "jest",
+    "build:web": "node scripts/build-web.js"
   },
   "private": true,
   "jest": {
