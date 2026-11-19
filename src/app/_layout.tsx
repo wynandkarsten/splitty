@@ -20,6 +20,7 @@ export default function Layout() {
         <Stack.Screen name="expense" options={{ title: 'Expense', presentation: 'modal' }} />
         <Stack.Screen name="settle" options={{ title: 'Settle up', presentation: 'modal' }} />
         <Stack.Screen name="settings" options={{ title: 'Settings' }} />
+        <Stack.Screen name="feedback" options={{ title: 'Request a feature' }} />
       </Stack>
     </>
   );
