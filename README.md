@@ -1,26 +1,27 @@
 # Splitty
 
-Bill and event splitting app (working name). One Expo / React Native codebase for web, iOS and Android; Supabase backend.
+Bill and group-expense splitting. One Expo / React Native codebase for Android, iOS and web. Local-first: all data lives in SQLite on the device (IndexedDB-backed wa-sqlite on web). No account, no server, no tracking.
 
-Plan, market scan and MVP spec live in the Obsidian vault: `Bill Split App` (`02 - Tenko Digital`).
+## Features
+Groups and members, expenses with equal / exact / percent / shares splits, categories, per-expense currency, receipt photos, simplified settle-up, recorded payments, recurring expenses, CSV export, search.
 
-## Status
+## Install
+- Android: https://tenkodigital.com/splitty/downloads/splitty.apk
+- Web / iPhone: https://tenkodigital.com/splitty/ (iPhone: Safari, Share, Add to Home Screen)
+- Privacy: https://tenkodigital.com/splitty/privacy.html
 
-Scaffold plus live database (2026-11-10). No app screens are built, the template's demo screens are still in `src/app`.
+## Develop
+    npm install
+    npx tsc --noEmit && npx expo lint && npx jest
+    npx expo start
 
-## Run
+## Build
+- Web: `npm run build:web`, then publish `dist/` under `/splitty/`.
+- Android (needs a full JDK 17+ and the Android SDK; from `android/`):
+  `JAVA_HOME=<jdk> ANDROID_HOME=<sdk> ./gradlew --no-daemon --max-workers=2 -PreactNativeArchitectures=arm64-v8a assembleRelease bundleRelease`
+- Release signing reads `~/.splitty-signing/keystore.properties`. Keep the keystore out of the repo and back it up.
 
-```bash
-npm install
-npx expo start        # then press w for web, or scan the QR in Expo Go
-```
+## Store listing
+See `store/LISTING.md` and the screenshots in `store/`.
 
-## Backend
-
-Supabase project `splitty` (ref `kgxudhaqszsgpwyshvzz`, region eu-west-1), linked with the Supabase CLI. The core migration is applied. On a new machine: `npx supabase login`, `npx supabase link --project-ref kgxudhaqszsgpwyshvzz`, copy `.env.example` to `.env.local` and fill in the URL and publishable key (Dashboard > Project Settings > API, or `npx supabase projects api-keys`). New migrations: `npx supabase db push`.
-
-## Schema
-
-`events` > `participants` (login optional, so guests can join by link) > `bills` > `bill_shares` (who owes what; skipping a bill = no row) and `payments` (settle-ups). Money is integer cents.
-
-Row level security is enabled on every table with **no policies**, so all client access is denied until the access model (members vs link-joined guests) is designed and policies written. The rule "shares sum to the bill amount" is not enforced in the database yet.
+`supabase/` holds an unused early backend scaffold.

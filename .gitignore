@@ -51,3 +51,4 @@ supabase/.temp/
 /ios
 *.keystore
 keystore.properties
+release/
