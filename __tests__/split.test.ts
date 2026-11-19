@@ -102,6 +102,10 @@ describe('money helpers', () => {
     expect(parseMoney('1.234,56')).toBe(123456);
     expect(parseMoney('abc')).toBeNull();
     expect(parseMoney('')).toBeNull();
+    expect(parseMoney('123.45.')).toBe(12345);
+    expect(parseMoney('12,5,')).toBe(1250);
+    expect(parseMoney('7.')).toBe(700);
+    expect(parseMoney('.')).toBeNull();
   });
   test('formatMoney', () => {
     expect(formatMoney(123456)).toBe('R1 234.56');

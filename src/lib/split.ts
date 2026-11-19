@@ -127,7 +127,7 @@ export function convertCents(cents: number, rate: number): number {
 
 /** Parse "12.50", "12,5", "R 1 200,00" into cents. Returns null if invalid. */
 export function parseMoney(input: string): number | null {
-  let s = input.replace(/[^\d.,-]/g, '');
+  let s = input.replace(/[^\d.,-]/g, '').replace(/[.,]$/, ''); // a dangling separator ("123.45.") is a typo, not a decimal point
   if (!s || s === '-') return null;
   const lastComma = s.lastIndexOf(',');
   const lastDot = s.lastIndexOf('.');
