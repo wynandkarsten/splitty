@@ -1,0 +1,219 @@
+#!/usr/bin/env python3
+"""Splitty feedback service.
+
+Listens on a unix socket only (no TCP port); nginx proxies to it. Stdlib only.
+
+  POST /splitty/api/feedback   JSON {kind,title,details,version,platform,website}  -> {"ok":true}
+  GET  /splitty/suggestions    read-only list of submissions (nginx puts basic auth in front)
+
+Injection posture:
+  * SQL: every statement is parameterised, no string-built SQL anywhere.
+  * XSS: every stored value is passed through html.escape() before it reaches HTML; the admin page
+    ships no JavaScript and a CSP of default-src 'none', so even an escaping bug could not run script.
+  * Input: hard length caps, whitelist for `kind`, control characters stripped, strict JSON object only.
+  * Abuse: body size cap, honeypot field, per-client hourly cap, global daily cap.
+  * Client IPs are stored only as a salted hash.
+"""
+import hashlib
+import html
+import json
+import os
+import re
+import sqlite3
+import sys
+import time
+import socketserver
+from http.server import BaseHTTPRequestHandler
+
+SOCK_PATH = os.environ.get('SOCK_PATH', '/run/splitty-feedback/sock')
+DATA_DIR = os.environ.get('DATA_DIR', '/var/lib/splitty-feedback')
+DB_PATH = os.path.join(DATA_DIR, 'feedback.db')
+SALT_PATH = os.path.join(DATA_DIR, 'salt')
+
+MAX_BODY = 8 * 1024
+MAX_TITLE, MAX_DETAILS = 120, 2000
+PER_CLIENT_PER_HOUR = 5
+GLOBAL_PER_DAY = 300
+KINDS = ('feature', 'bug')
+CTRL = re.compile(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]')
+SAFE_TOKEN = re.compile(r'[^A-Za-z0-9._+-]')
+
+SECURITY_HEADERS = {
+    'X-Content-Type-Options': 'nosniff',
+    'Referrer-Policy': 'no-referrer',
+    'Cache-Control': 'no-store',
+    'X-Frame-Options': 'DENY',
+}
+ADMIN_CSP = "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+
+
+def db():
+    con = sqlite3.connect(DB_PATH, timeout=5)
+    con.execute(
+        'CREATE TABLE IF NOT EXISTS feedback ('
+        'id INTEGER PRIMARY KEY AUTOINCREMENT, created INTEGER NOT NULL, kind TEXT NOT NULL, '
+        'title TEXT NOT NULL, details TEXT NOT NULL, version TEXT NOT NULL, platform TEXT NOT NULL, '
+        'client TEXT NOT NULL)'
+    )
+    con.execute('CREATE INDEX IF NOT EXISTS idx_feedback_client ON feedback(client, created)')
+    return con
+
+
+def salt():
+    os.makedirs(DATA_DIR, exist_ok=True)
+    if not os.path.exists(SALT_PATH):
+        fd = os.open(SALT_PATH, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        with os.fdopen(fd, 'w') as f:
+            f.write(os.urandom(32).hex())
+    with open(SALT_PATH) as f:
+        return f.read().strip()
+
+
+SALT = salt()
+
+
+def clean_text(v, limit):
+    if not isinstance(v, str):
+        return ''
+    return CTRL.sub('', v).replace('\r\n', '\n').strip()[:limit]
+
+
+def clean_token(v, limit):
+    if not isinstance(v, str):
+        return 'unknown'
+    return SAFE_TOKEN.sub('', v)[:limit] or 'unknown'
+
+
+def client_hash(ip):
+    return hashlib.sha256((SALT + ip).encode()).hexdigest()[:16]
+
+
+def esc(v):
+    return html.escape(str(v), quote=True)
+
+
+def render_admin(rows):
+    items = []
+    for r in rows:
+        when = time.strftime('%Y-%m-%d %H:%M', time.gmtime(r[1] + 2 * 3600))  # SAST
+        items.append(
+            '<article><header><b class="k {k}">{k}</b> <span>#{id} &middot; {when} SAST &middot; v{v} &middot; {p}</span></header>'
+            '<h2>{t}</h2><pre>{d}</pre></article>'.format(
+                k=esc(r[2]), id=esc(r[0]), when=esc(when), v=esc(r[5]), p=esc(r[6]), t=esc(r[3]), d=esc(r[4])
+            )
+        )
+    body = ''.join(items) or '<p>No submissions yet.</p>'
+    return (
+        '<!doctype html><html lang="en"><head><meta charset="utf-8">'
+        '<meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">'
+        '<title>Splitty feedback</title><style>'
+        'body{font:15px/1.5 system-ui,sans-serif;background:#0f1115;color:#e8eaed;max-width:760px;margin:0 auto;padding:16px}'
+        'article{background:#1a1d23;border:1px solid #2a2e36;border-radius:12px;padding:12px 16px;margin:12px 0}'
+        'header span{color:#9aa0a6;font-size:13px}h2{font-size:17px;margin:6px 0}'
+        'pre{white-space:pre-wrap;word-break:break-word;margin:0;font:inherit;color:#c9ccd1}'
+        '.k{padding:1px 8px;border-radius:99px;font-size:12px;text-transform:uppercase}'
+        '.feature{background:#26c6a0;color:#06251d}.bug{background:#ff6b6b;color:#2b0808}'
+        '</style></head><body><h1>Splitty feedback</h1><p>%d submission(s), newest first.</p>%s</body></html>'
+        % (len(rows), body)
+    )
+
+
+class Handler(BaseHTTPRequestHandler):
+    server_version = 'splitty-feedback'
+    sys_version = ''
+
+    def _send(self, code, body, ctype='application/json', extra=None):
+        data = body.encode() if isinstance(body, str) else body
+        self.send_response(code)
+        self.send_header('Content-Type', ctype)
+        self.send_header('Content-Length', str(len(data)))
+        for k, v in {**SECURITY_HEADERS, **(extra or {})}.items():
+            self.send_header(k, v)
+        self.end_headers()
+        self.wfile.write(data)
+
+    def _json(self, code, obj):
+        self._send(code, json.dumps(obj), 'application/json; charset=utf-8')
+
+    def log_message(self, fmt, *args):  # one terse line, no bodies logged
+        sys.stderr.write('%s %s\n' % (self.command, self.path.split('?')[0]))
+
+    def do_GET(self):
+        if self.path.split('?')[0] != '/splitty/suggestions':
+            return self._json(404, {'ok': False})
+        con = db()
+        try:
+            rows = con.execute(
+                'SELECT id, created, kind, title, details, version, platform FROM feedback ORDER BY id DESC LIMIT 500'
+            ).fetchall()
+        finally:
+            con.close()
+        self._send(200, render_admin(rows), 'text/html; charset=utf-8', {'Content-Security-Policy': ADMIN_CSP})
+
+    def do_POST(self):
+        if self.path.split('?')[0] != '/splitty/api/feedback':
+            return self._json(404, {'ok': False})
+        if 'application/json' not in (self.headers.get('Content-Type') or ''):
+            return self._json(415, {'ok': False, 'error': 'JSON only'})
+        try:
+            length = int(self.headers.get('Content-Length') or '')
+        except ValueError:
+            return self._json(411, {'ok': False, 'error': 'Length required'})
+        if length <= 0 or length > MAX_BODY:
+            return self._json(413, {'ok': False, 'error': 'Too large'})
+        try:
+            payload = json.loads(self.rfile.read(length).decode('utf-8'))
+        except (ValueError, UnicodeDecodeError):
+            return self._json(400, {'ok': False, 'error': 'Bad JSON'})
+        if not isinstance(payload, dict):
+            return self._json(400, {'ok': False, 'error': 'Bad JSON'})
+
+        if payload.get('website'):  # honeypot: real users never fill this
+            return self._json(200, {'ok': True})
+
+        kind = payload.get('kind')
+        title = clean_text(payload.get('title'), MAX_TITLE)
+        details = clean_text(payload.get('details'), MAX_DETAILS)
+        if kind not in KINDS or len(title) < 3:
+            return self._json(422, {'ok': False, 'error': 'A title of at least 3 characters is needed'})
+        version = clean_token(payload.get('version'), 20)
+        platform = clean_token(payload.get('platform'), 20)
+
+        ip = (self.headers.get('X-Real-IP') or 'unknown')[:64]
+        client = client_hash(ip)
+        now = int(time.time())
+        con = db()
+        try:
+            hourly = con.execute('SELECT COUNT(*) FROM feedback WHERE client=? AND created>?', (client, now - 3600)).fetchone()[0]
+            daily = con.execute('SELECT COUNT(*) FROM feedback WHERE created>?', (now - 86400,)).fetchone()[0]
+            if hourly >= PER_CLIENT_PER_HOUR or daily >= GLOBAL_PER_DAY:
+                return self._json(429, {'ok': False, 'error': 'Too many submissions, try again later'})
+            con.execute(
+                'INSERT INTO feedback (created, kind, title, details, version, platform, client) VALUES (?,?,?,?,?,?,?)',
+                (now, kind, title, details, version, platform, client),
+            )
+            con.commit()
+        finally:
+            con.close()
+        self._json(200, {'ok': True})
+
+    def do_PUT(self):
+        self._json(405, {'ok': False})
+
+    do_DELETE = do_PATCH = do_PUT
+
+
+class UnixServer(socketserver.ThreadingMixIn, socketserver.UnixStreamServer):
+    daemon_threads = True
+
+    def get_request(self):
+        sock, _ = super().get_request()
+        return sock, ('unix', 0)
+
+
+if __name__ == '__main__':
+    if os.path.exists(SOCK_PATH):
+        os.unlink(SOCK_PATH)
+    srv = UnixServer(SOCK_PATH, Handler)
+    os.chmod(SOCK_PATH, 0o660)
+    srv.serve_forever()

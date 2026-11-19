@@ -2,7 +2,7 @@
   "expo": {
     "name": "Splitty",
     "slug": "splitty",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "splitty",
@@ -25,7 +25,7 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.tenkodigital.splitty",
-      "versionCode": 2,
+      "versionCode": 3,
       "permissions": [
         "CAMERA"
       ],
