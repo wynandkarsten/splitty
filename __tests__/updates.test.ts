@@ -34,7 +34,7 @@ describe('feedback', () => {
   it('posts JSON and reports success', async () => {
     const f = jest.fn().mockResolvedValue({ ok: true, status: 200 });
     expect(await submitFeedback(input, f as unknown as typeof fetch)).toEqual({ ok: true });
-    expect(f.mock.calls[0][0]).toBe('https://tenkodigital.com/splitty/api/feedback');
+    expect(f.mock.calls[0][0]).toBe('https://splitty.tenkodigital.com/api/feedback');
     expect(f.mock.calls[0][1].method).toBe('POST');
   });
 

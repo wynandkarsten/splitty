@@ -1,0 +1,52 @@
+:root{--g:#1F9D74;--g2:#26c6a0;--ink:#0b1512;--card:rgba(255,255,255,.08);--line:rgba(255,255,255,.16)}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font:17px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#eef6f3;background:var(--ink);min-height:100vh}
+a{color:var(--g2)}
+.bg{position:fixed;inset:0;z-index:-1;overflow:hidden;background:linear-gradient(160deg,#0f3d2f,#0b1512 70%)}
+.bg .shots{position:absolute;inset:-15% -10%;display:flex;gap:28px;justify-content:center;transform:rotate(-8deg);filter:blur(2px) saturate(1.1);opacity:.55}
+.bg .shots div{display:flex;flex-direction:column;gap:28px;width:min(270px,34vw);flex:none}
+.bg .shots div:nth-child(even){margin-top:-120px}
+.bg img{width:100%;border-radius:26px;border:6px solid #111;box-shadow:0 20px 50px rgba(0,0,0,.5);display:block}
+.bg::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 35%,rgba(11,21,18,.55),rgba(11,21,18,.92) 75%)}
+header.nav{display:flex;align-items:center;gap:18px;max-width:980px;margin:0 auto;padding:18px 20px;flex-wrap:wrap}
+header.nav .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;color:#fff;text-decoration:none;margin-right:auto}
+header.nav .brand img{width:34px;height:34px;border-radius:9px}
+header.nav a.l{color:#cfe3dc;text-decoration:none;font-size:15px}
+header.nav a.l:hover,header.nav a.l[aria-current]{color:#fff}
+main{max-width:980px;margin:0 auto;padding:0 20px 60px}
+.hero{text-align:center;padding:9vh 0 7vh}
+.hero h1{font-size:clamp(40px,8vw,76px);line-height:1.04;margin:0 0 18px;letter-spacing:-.02em}
+.hero h1 em{font-style:normal;color:var(--g2)}
+.hero p.sub{font-size:clamp(18px,2.6vw,23px);color:#cfe3dc;max-width:640px;margin:0 auto 30px}
+.btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn{display:inline-block;padding:14px 26px;border-radius:99px;background:var(--g);color:#fff;font-weight:700;text-decoration:none;border:1px solid transparent}
+.btn:hover{background:#18865f}
+.btn.ghost{background:rgba(255,255,255,.1);border-color:var(--line)}
+.btn.ghost:hover{background:rgba(255,255,255,.18)}
+.small{font-size:14px;color:#a9c2b9}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin:10px 0 50px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.card h3{margin:0 0 6px;font-size:19px}
+.card p{margin:0;color:#cfe3dc}
+.card .ic{font-size:28px;display:block;margin-bottom:8px}
+h2.sec{font-size:clamp(26px,4vw,38px);margin:50px 0 6px;text-align:center}
+p.lead{text-align:center;color:#cfe3dc;margin:0 auto 26px;max-width:620px}
+.steps{counter-reset:s;list-style:none;padding:0;margin:14px 0 0}
+.steps li{counter-increment:s;padding:6px 0 6px 44px;position:relative}
+.steps li::before{content:counter(s);position:absolute;left:0;top:6px;width:30px;height:30px;border-radius:50%;background:var(--g);display:grid;place-items:center;font-weight:700;font-size:15px}
+.ver{margin:14px 0}
+.ver h3{margin:0}.ver .meta{color:#a9c2b9;font-size:14px}
+.tag{display:inline-block;padding:1px 10px;border-radius:99px;font-size:12px;font-weight:700;text-transform:uppercase;background:var(--g);color:#fff;margin-left:8px;vertical-align:middle}
+.tag.bug{background:#ff6b6b;color:#2b0808}.tag.doing{background:#e8b923;color:#2b2200}.tag.planned{background:#4a90e2}
+form.fb label{display:block;margin:14px 0 4px;font-weight:600}
+form.fb input,form.fb textarea,form.fb select{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.35);color:#fff;font:inherit}
+form.fb textarea{min-height:130px;resize:vertical}
+form.fb .row{display:flex;gap:10px}form.fb .row label{flex:1;margin:14px 0 0;font-weight:600}
+form.fb .row label span{display:block;margin-bottom:4px}
+form.fb .hp{position:absolute;left:-9999px;height:0;overflow:hidden}
+#msg{margin-top:14px;min-height:24px}
+#msg.ok{color:var(--g2)}#msg.err{color:#ff8a8a}
+ul.road{list-style:none;padding:0;margin:0}ul.road li{padding:10px 0;border-bottom:1px solid var(--line)}
+footer{max-width:980px;margin:0 auto;padding:30px 20px 50px;text-align:center;color:#a9c2b9;font-size:14px}
+@media (max-width:600px){.bg .shots{gap:14px}.bg .shots div{gap:14px}}

@@ -11,6 +11,6 @@ self.addEventListener('fetch', (e) => {
   e.respondWith(
     isAsset
       ? caches.match(req).then((hit) => hit || fetch(req).then((res) => { const c = res.clone(); caches.open(CACHE).then((x) => x.put(req, c)); return res; }))
-      : fetch(req).then((res) => { const c = res.clone(); caches.open(CACHE).then((x) => x.put(req, c)); return res; }).catch(() => caches.match(req).then((h) => h || caches.match('/splitty/')))
+      : fetch(req).then((res) => { const c = res.clone(); caches.open(CACHE).then((x) => x.put(req, c)); return res; }).catch(() => caches.match(req).then((h) => h || caches.match('/app/')))
   );
 });

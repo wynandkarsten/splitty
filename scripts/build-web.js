@@ -11,9 +11,9 @@ const tags = `
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Splitty" />
-    <link rel="manifest" href="/splitty/manifest.webmanifest" />
-    <link rel="apple-touch-icon" href="/splitty/icon-180.png" />
-    <script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/splitty/sw.js',{scope:'/splitty/'}).catch(function(){})})}</script>
+    <link rel="manifest" href="/app/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/app/icon-180.png" />
+    <script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/app/sw.js',{scope:'/app/'}).catch(function(){})})}</script>
   `;
 h = h.replace('</head>', tags + '</head>');
 fs.writeFileSync(p, h);

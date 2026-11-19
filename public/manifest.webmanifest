@@ -2,13 +2,13 @@
   "name": "Splitty - split bills",
   "short_name": "Splitty",
   "description": "Split bills with friends. Everything stays on your phone.",
-  "start_url": "/splitty/",
-  "scope": "/splitty/",
+  "start_url": "/app/",
+  "scope": "/app/",
   "display": "standalone",
   "background_color": "#1F9D74",
   "theme_color": "#1F9D74",
   "icons": [
-    { "src": "/splitty/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/splitty/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    { "src": "/app/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/app/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ]
 }

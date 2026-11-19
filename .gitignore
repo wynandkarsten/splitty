@@ -52,3 +52,4 @@ supabase/.temp/
 *.keystore
 keystore.properties
 release/
+__pycache__/

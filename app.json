@@ -2,7 +2,7 @@
   "expo": {
     "name": "Splitty",
     "slug": "splitty",
-    "version": "1.1.1",
+    "version": "1.1.2",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "splitty",
@@ -25,7 +25,7 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.tenkodigital.splitty",
-      "versionCode": 3,
+      "versionCode": 4,
       "permissions": [
         "CAMERA"
       ],
@@ -63,7 +63,7 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true,
-      "baseUrl": "/splitty"
+      "baseUrl": "/app"
     },
     "description": "Split bills with friends. Local-first, no account, receipt scanning."
   }

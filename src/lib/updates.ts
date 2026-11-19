@@ -1,4 +1,4 @@
-export const VERSION_URL = 'https://tenkodigital.com/splitty/version.json';
+export const VERSION_URL = 'https://splitty.tenkodigital.com/version.json';
 
 export type LatestInfo = { version: string; url?: string; notes?: string };
 

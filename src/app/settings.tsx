@@ -6,7 +6,7 @@ import { Linking, Platform } from 'react-native';
 import { Btn, Card, Screen, Txt } from '@/components/ui';
 import { checkForUpdate } from '@/lib/updates';
 
-const APK = 'https://tenkodigital.com/splitty/downloads/splitty.apk';
+const APK = 'https://splitty.tenkodigital.com/downloads/splitty.apk';
 
 export default function Settings() {
   const router = useRouter();

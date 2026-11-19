@@ -1,4 +1,4 @@
-export const FEEDBACK_URL = 'https://tenkodigital.com/splitty/api/feedback';
+export const FEEDBACK_URL = 'https://splitty.tenkodigital.com/api/feedback';
 
 export type FeedbackKind = 'feature' | 'bug';
 export type FeedbackInput = { kind: FeedbackKind; title: string; details: string; version: string; platform: string };

@@ -6,9 +6,9 @@ Bill and group-expense splitting. One Expo / React Native codebase for Android, 
 Groups and members, expenses with equal / exact / percent / shares splits, categories, per-expense currency, receipt photos, simplified settle-up, recorded payments, recurring expenses, CSV export, search.
 
 ## Install
-- Android: https://tenkodigital.com/splitty/downloads/splitty.apk
-- Web / iPhone: https://tenkodigital.com/splitty/ (iPhone: Safari, Share, Add to Home Screen)
-- Privacy: https://tenkodigital.com/splitty/privacy.html
+- Android: https://splitty.tenkodigital.com/downloads/splitty.apk
+- Site: https://splitty.tenkodigital.com/ (install page /install/, versions /versions/, suggestions /suggest/). Web app / iPhone: https://splitty.tenkodigital.com/app/ (iPhone: Safari, Share, Add to Home Screen)
+- Privacy: https://splitty.tenkodigital.com/privacy.html
 
 ## Develop
     npm install
